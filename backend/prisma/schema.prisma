@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String        @id @default(uuid())
+  firstName       String
+  lastName        String
+  username        String        @unique
+  password        String
+  role            Role         @default(STUDENT)
+  userType        String       // élève/enseignant
+  educationLevel  String?      // college/lycee
+  currentClass    String?
+  schoolName      String?
+  city           String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  questions      Question[]
+  attempts       QuizAttempt[]
+  schools        School[]
+  teachingLevels String[]
+  teachingClasses String[]
+  subject        String?
+}
+
+model School {
+  id        String   @id @default(uuid())
+  name      String
+  city      String
+  type      String   // public/privé
+  teachers  User[]
+}
+
+model Question {
+  id            String       @id @default(uuid())
+  adminId       String
+  subject       String
+  level         String
+  module        String
+  difficulty    Difficulty
+  content       String       @db.Text
+  question      String       @db.Text
+  answers       String[]
+  correctAnswer String
+  explanation   String       @db.Text
+  hints         String[]
+  figures       String[]     @db.Text
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  admin         User         @relation(fields: [adminId], references: [id])
+  attempts      QuizAttempt[]
+}
+
+model QuizAttempt {
+  id          String    @id @default(uuid())
+  userId      String
+  questionId  String
+  answer      String?
+  isCorrect   Boolean?
+  timeTaken   Int       // en secondes
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id])
+  question    Question  @relation(fields: [questionId], references: [id])
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum Difficulty {
+  BEGINNER
+  PROGRESSIVE
+  MEDIUM
+  DIFFICULT
+  ADVANCED
+  LEGEND
+  RANDOM
+}
